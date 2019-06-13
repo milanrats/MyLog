@@ -1,0 +1,11 @@
+由于公司使用的一个平台AT91SAM9260比较老，很多外围芯片已经停产，近期出现了nandflash和sdram都买不到的情况，需要更换新的型号
+
+前期曾经更换过nandflash，出现片上rom无法引导bootstrap，但是使用samba把bootstrap直接下载到sram后，手动运行却可以引导u-boot和linux内核，
+非常奇怪，至今没有找到原因
+
+现在正在更换新的sdram，原来的型号是H57V2562GTR-75C已经停产无法买到，现更换为MT48LC16M16A2P-7E，两支片子引脚兼容，电压 ，时钟等基本一致，时序有差别
+焊好新片子以后连接jlink，使用samba连接，出现
+External RAM initialization failed. 
+External RAM access is required to run applets.
+Continue anyway?
+查询才发现需要修改samba代码并且重新编译，我去，原来还没见过这么干的，先改好工具才能开发
