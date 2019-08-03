@@ -28,3 +28,7 @@ NAND只可块操作，专用接口
 
 对于NOR，NAND等提供了MTD子系统，其上运行的YFSS2，JFFS3，UBIFS等具备擦出和负载均衡能力的文件系统
 
+外设接口
+RS232 RS485
+I2C SPI CAN
+USB SDIO LAN
