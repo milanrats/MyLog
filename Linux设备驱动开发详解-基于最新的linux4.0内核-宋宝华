@@ -32,3 +32,14 @@ NAND只可块操作，专用接口
 RS232 RS485
 I2C SPI CAN
 USB SDIO LAN
+EMMC I3C MIPI
+
+linux2.6内核
+调度器CFS算法EDF算法
+内核抢占，线程模型NPTL
+虚拟内存 反向映射
+文件系统 btrfs
+总线、设备、驱动模型
+
+驱动drivers与arch独立，kernel fs ipc net等与硬件剥离
+进程调度 内存管理 VFS net IPC
