@@ -43,3 +43,8 @@ linux2.6内核
 
 驱动drivers与arch独立，kernel fs ipc net等与硬件剥离
 进程调度 内存管理 VFS net IPC
+进程调度 CFS算法EDF算法
+内存管理buddy算法slab flusher kswapd
+VFS 为各个不同文件系统封装为统一接口，还有利用net的NFS，利用mm的ramdisk
+NET
+IPC 信号量，共享内存，消息队列，管道，UNIX域套接字
