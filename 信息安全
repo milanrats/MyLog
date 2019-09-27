@@ -1,5 +1,7 @@
 现需要搭建符合TEE的平台
 ESAM
 SE安全原件 加密存储功能
-TPM2.0
-S
+TPM2.0 加密存储及加密算法，安全内存?
+ARM TRUSTZONE安全运行区域，linux内核无法支持？
+
+鸿蒙系统支持TEE，但是目前只支持M0 M3 M4 M7核
