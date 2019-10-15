@@ -7,3 +7,19 @@ https://git-scm.com/book/zh/v1/%E8%B5%B7%E6%AD%A5-Git-%E5%9F%BA%E7%A1%80
 1在工作目录中修改某些文件。
 2对修改后的文件进行快照，然后保存到暂存区域。
 3提交更新，将保存在暂存区域的文件快照永久转储到 Git 目录中。
+
+git安装
+
+git配置
+
+git使用
+1取得git仓库
+本地程序使用
+$ git init
+$ git add *.c
+$ git add README
+$ git commit -m 'initial project version'
+从现有仓库克隆
+$ git clone git://github.com/schacon/grit.git
+或
+$ git clone git://github.com/schacon/grit.git mygrit
