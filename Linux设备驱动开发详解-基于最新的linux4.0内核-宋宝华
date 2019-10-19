@@ -48,3 +48,13 @@ linux2.6内核
 VFS 为各个不同文件系统封装为统一接口，还有利用net的NFS，利用mm的ramdisk
 NET
 IPC 信号量，共享内存，消息队列，管道，UNIX域套接字
+
+早期bootloader以ATAG格式形式封装启动信息，把其地址放入r2寄存器，linux支持设备树后，bootloader把dtb地址放入r2，可以通过配置把dtb和zImage绑定，r2不需要放dtb地址了
+bootrom--bootloader--linux--init运行并生成进程树
+arm-linux-guneabihf-gcc使用硬件浮点FPU处理浮点数比arm-linux-guneabi-gcc编译的程序处理浮点数运算的性能好得多
+
+驱动模块
+insmod modprobe加载模块，rmmod卸载模块
+驱动程序中使用request_module(module_name)加载模块
+声明时加_init的函数和声明时加_initdata的变量将在初始化完成后释放内存空间
+模块卸载函数和变量中加_exit _exitdata表示如果模块直接编译进内核时，这些变量和函数将被忽略，因为不会使用卸载函数
