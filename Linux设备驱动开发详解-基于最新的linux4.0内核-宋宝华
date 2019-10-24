@@ -58,3 +58,45 @@ insmod modprobe加载模块，rmmod卸载模块
 驱动程序中使用request_module(module_name)加载模块
 声明时加_init的函数和声明时加_initdata的变量将在初始化完成后释放内存空间
 模块卸载函数和变量中加_exit _exitdata表示如果模块直接编译进内核时，这些变量和函数将被忽略，因为不会使用卸载函数
+module_param()用于从insmod modprobe参数中获取参数，当编译进内核时，可以从bootargs获取
+/proc/kallsyms存放内核符号表及其地址，导出的符号可以被其他模块使用，声明一下即可EXPORT_SYMBOL,EXPORT_SYMBOL_GPL到处的符号表不能被非GPL的模块引用
+MODULE_LISENCE,为了使用GPL的符号表，非GPL的模块经常把GPL的符号表封装一层使用EXPORT_SYMBOL导出
+作者MODULE_AUTHOR，描述MODULE_DESCRIPTION，版本MODULE_VERSION，设备表MODULE_DEVICE_TABLE，别名MODULE_ALIAS
+SMP和PREEMPT
+模块计数用于管理模块是否被使用，被使用时无法卸载模块
+linux文件操作creat umask open read write lseek close
+c库文件操作fopen fgetc fputc fgets fputs fprintf fscanf fread fwrite fgetpos fsetpos fseek fclose
+fread如果返回值不等与字段数，可能时出错或者文件末尾，需要调用feof或ferror查看
+VFS与应用之间的接口是以上系统调用，与内核接口是file_operations
+目录/proc目录存放进程及内核信息，这个目录并不是真正的文件，他存在于内存中，/sys目录存放sysfs，虚拟的，linux设备驱动模型中的总线驱动和设备都有节点，总线设备类
+文件file结构体和inode结构体
+linux2.6以后udev取代devfs
+注册和注销字符设备register_chrdev,unregister_chrdev
+linux设计的一个基本观点是机制和策略分离，机制是做事情的步骤方法，是固定的，策略是每个步骤的具体实现，是不固定的，因此linux内核中不应实现策略
+udev完全在用户态工作，发送的事件uevent
+总线bus_type,驱动device_driver,设备device结构体
+设备和驱动都依附于总线，因此设备和驱动结构体中都有总线的实例，设备和驱动分离，通过总线match函数检测到匹配的设备和驱动时，才执行驱动的probe函数，
+总线有platform，pci，i2c，usb等，总线设备驱动最终落实在sysfs，attribute落实为sysfs中的一个文件
+udev动态建立删除设备文件，内核检测到设备后，会使用netlink发送uevent，udev通过内核发送的内容进行匹配，例如插入u盘，udev规则文件定义新设备处理规则
+udevadm info -a -p /sys/device/platform/serial8250/tty/ttyS0
+udev的轻量级版本mdev
+
+字符设备驱动：cdev结构体
+cdev_init建立设备和file_operation产生联系
+cdev_alloc开辟cdev空间
+cdev_add,cdev_dev设备添加和删除
+register_chrdev_region申请设备号
+alloc_chrdev_region申请设备号，设备号起始地址未知
+unregister_chrdev_region释放设备号
+
+file_operation结构体
+llseek read write（read write返回0表示EOF）
+unlocked_ioctl和用户空间fcntl和ioctl对应
+mmap将设备内存映射到进程的虚拟地址空间，帧缓冲驱动中使用其直接修改显示内容
+open release
+poll和用户空间的poll和select对应
+aio_read aio_write异步读写，对应用户空间SYS_io_setup,SYS_io_submit,SYS_io_getevents,SYS_io_destroy
+用户空间不能访问内核空间内存，使用copy_from_user,copy_to_user转换
+内核空间可以访问用户空间内存，使用access_ok检查是否是用户空间内存，如果不检查，入侵者可以传入一个内核空间地址，让驱动给其填充数据
+
+
