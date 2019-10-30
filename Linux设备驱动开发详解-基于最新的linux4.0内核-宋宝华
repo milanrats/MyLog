@@ -99,4 +99,16 @@ aio_read aio_write异步读写，对应用户空间SYS_io_setup,SYS_io_submit,SY
 用户空间不能访问内核空间内存，使用copy_from_user,copy_to_user转换
 内核空间可以访问用户空间内存，使用access_ok检查是否是用户空间内存，如果不检查，入侵者可以传入一个内核空间地址，让驱动给其填充数据
 
+ioctl的参数cmd
+设备类型（魔数），序列号，方向，长度，使用_IO() _IOR() _IOW() _IOWR()四个宏定义生成cmd，内核中有一些专用的控制命令无法被驱动使用
+设备驱动中常把私有数据private_data指向设备结构体，再用read write ioctl lseek访问private_data
+private_data的设置可以在open函数中
+使用private_data的好处是可以轻易的修改为支持多个同类设备的驱动
+container_of是通过成员指针获取结构体指针
+
+加载模块，创建节点mknod
+字符驱动 初始化，添加删除cdev结构体，申请释放设备号，填充file_operations函数
+
+并发和竞态
+
 
