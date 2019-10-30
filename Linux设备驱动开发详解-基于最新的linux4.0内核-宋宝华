@@ -110,5 +110,37 @@ container_of是通过成员指针获取结构体指针
 字符驱动 初始化，添加删除cdev结构体，申请释放设备号，填充file_operations函数
 
 并发和竞态
+并发：多个执行单元同时并行运行
+竞态：同时并行运行的执行单元访问共享资源（硬件，软件上的全局变量和静态变量）
+进程和进程间（多处理器和单处理器时间片），进程和中断间，中断和中断间（中断嵌套，2.6.35之后取消了中断嵌套，之前可以用IRQF_DISABLE避免嵌套）
+解决竞态的办法是互斥访问共享资源，访问共享资源的代码区域叫做临界区，临界区需要互斥机制保护（中断屏蔽，原子操作，自旋锁，信号量，互斥体）
+
+编译乱序和执行乱序
+编译乱序：打开编译器优化后，编译器会对访存指令乱序提高cache命中率，可以使用barrier编译屏障防止编译乱序，barrier可以保证其之前和之后的程序不乱序
+volatile也具有防止编译乱序的弱作用，比如线程两次访问某变量，如果不加volatile，可能第二次会直接优化掉使用第一次的结果，volatile不能保护临界资源
+linux内核中不太喜欢volatile
+执行乱序：当一条指令访存时间较长时，如果后面的指令不依赖于前面的执行结构，可能会同时执行后面指令，ARM926EJ-S没有执行乱序功能，新核有
+可以使用内存屏障解决执行乱序造成的问题，当访问外设寄存器时，这些外设寄存器对CPU逻辑上无法构成以来，可能会出现内存乱序，当这些寄存器的访问需要顺序
+执行时，需要使用内存屏障DMB,DSB,ISB，读写寄存器readl,readl_relaxed, writel,writel_relaxed,前边的有内存屏障，后边的没有
+当开启dma时，先使用writel_relaxed写入地址大小等，在使用writel是能dma，防止乱序造成先是能dma后配置
+
+中断屏蔽：单片机等单核cpu中常在进入临界区前屏蔽中断解决竞态问题，linux内核驱动为了保证可以执行一般不这样做
+local_irq_disable,local_irq_enable,中断屏蔽实际是解决进程和中断间的竞态，而linux的进程调度也是以来中断实现，因此也解决了进程和进程间的竞态，
+但是只能屏蔽本cpu的中断，在不能解决SMP中的竞态，应与自旋锁联合使用
+
+原子操作：在arm中使用LDREX,STREX指令实现，实现单cpu和多cpu的原子操作
+linux中有整形原子操作atomic_set,atomic_read,atomic_add,atomic_sub,atomic_inc,atomic_dec,
+位原子操作set_bit,clear_bit,change_bit,test_bit
+
+自旋锁：获取自旋锁是一个原子操作，当锁被获取后，如果其他执行单元需要获取锁，则一直判断锁是否被释放，直到其被释放，自旋锁持有期间内核抢占被禁止，
+SMP中只有当前核的抢占被禁止。
+spinlock_t lock;spin_lock_init(lock);spin_lock(lock);spin_trylock(lock)实际不自旋;spin_unlock(lock);
+自旋锁虽然不会被进程调度影响，但是会被中断和底半部影响，因此需要配合关中断local_irq_disable，关底半部local_bh_disable,关中断并保存状态local_irq_save使用
+形成了spin_lock_irq,spin_unlock_irq;spin_lock_irqsave,spin_unlock_irqrestore;spin_lock_bh,spin_unlock_bh;
+进程中使用spin_lock_irqsave,中断中使用spin_lock,这样进程cpu核的中断核抢占被禁止，而其他核获取spin_lock会失败
+使用自旋锁的注意事项1自旋锁是死等，适用于临界区较短，不适用于临界区大或者有共享设备时2死锁，当一个进程获取自旋锁后再次获取3获取自旋锁后不能调用
+copy_to_user,copy_from_user,kmalloc,msleep等可以导致阻塞的函数4中断里使用spin_lock防止多处理器时，中断在其他核运行
+使用自旋锁使设备只能被一个进程打开，在open核release函数中使用自旋锁判断使用计数
+
 
 
