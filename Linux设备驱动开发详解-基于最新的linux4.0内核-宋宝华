@@ -146,6 +146,9 @@ copy_to_user,copy_from_user,kmalloc,msleep等可以导致阻塞的函数4中断�
 顺序锁：write_seqlock,write_tryseqlock,write_seqlock_irqsave,write_seqlock_irq,write_seqlock_bh,write_sequnlock
 read_seqbegin,read_seqbegin_irqsave,配合read_seqretry,read_seqretry_irqrestore使用，如果读过程中被写，会执行重读
 多读单写，读写同时进行，读时如果写，则循环重读
-RCU锁：
+RCU锁：读复制更新锁，读不需要加锁，写是先读，然后拷贝到一个副本，修改副本后，等所有处理器不在引用数据时，更新回原数据
+rcu_read_lock,rcu_read_unlock,synchronize_rcu(),call_rcu,rcu_assign_pointer,rcu_dereference,rcu_access_pointer以及操作链表的函数
+读写同时，读效率高，写效率低，不适用与写入频繁的操作;
+信号量：
 
 
