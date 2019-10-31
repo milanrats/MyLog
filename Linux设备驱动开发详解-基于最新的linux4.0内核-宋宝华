@@ -141,6 +141,11 @@ spinlock_t lock;spin_lock_init(lock);spin_lock(lock);spin_trylock(lock)实际不
 使用自旋锁的注意事项1自旋锁是死等，适用于临界区较短，不适用于临界区大或者有共享设备时2死锁，当一个进程获取自旋锁后再次获取3获取自旋锁后不能调用
 copy_to_user,copy_from_user,kmalloc,msleep等可以导致阻塞的函数4中断里使用spin_lock防止多处理器时，中断在其他核运行
 使用自旋锁使设备只能被一个进程打开，在open核release函数中使用自旋锁判断使用计数
-
+读写自旋锁：rwlock_t lock;rwlock_init(lock),read_lock(),read_lock_irqsave,read_lock_irq,read_lock_bh,read_unlock(),写锁一样，与自旋锁使用方法相同
+多读单写，读写不能同时
+顺序锁：write_seqlock,write_tryseqlock,write_seqlock_irqsave,write_seqlock_irq,write_seqlock_bh,write_sequnlock
+read_seqbegin,read_seqbegin_irqsave,配合read_seqretry,read_seqretry_irqrestore使用，如果读过程中被写，会执行重读
+多读单写，读写同时进行，读时如果写，则循环重读
+RCU锁：
 
 
