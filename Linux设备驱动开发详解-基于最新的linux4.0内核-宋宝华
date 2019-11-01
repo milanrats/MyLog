@@ -149,6 +149,8 @@ read_seqbegin,read_seqbegin_irqsave,配合read_seqretry,read_seqretry_irqrestore
 RCU锁：读复制更新锁，读不需要加锁，写是先读，然后拷贝到一个副本，修改副本后，等所有处理器不在引用数据时，更新回原数据
 rcu_read_lock,rcu_read_unlock,synchronize_rcu(),call_rcu,rcu_assign_pointer,rcu_dereference,rcu_access_pointer以及操作链表的函数
 读写同时，读效率高，写效率低，不适用与写入频繁的操作;
-信号量：
+信号量：P获取信号量，V释放信号量sem_init(),down()会导致睡眠，不能在中断里使用，睡眠中不能被信号打断，down_interruptible可以被信号打断
+down_trylock(),up()释放信号量，信号量在获取不到时会睡眠，而自旋锁获取不到会等待，信号量常用于解决生产者消费者问题，信号量内核中多被mutex取代
+互斥体：mutex_init()
 
 
