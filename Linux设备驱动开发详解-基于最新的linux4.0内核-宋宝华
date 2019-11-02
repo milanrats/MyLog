@@ -151,6 +151,10 @@ rcu_read_lock,rcu_read_unlock,synchronize_rcu(),call_rcu,rcu_assign_pointer,rcu_
 读写同时，读效率高，写效率低，不适用与写入频繁的操作;
 信号量：P获取信号量，V释放信号量sem_init(),down()会导致睡眠，不能在中断里使用，睡眠中不能被信号打断，down_interruptible可以被信号打断
 down_trylock(),up()释放信号量，信号量在获取不到时会睡眠，而自旋锁获取不到会等待，信号量常用于解决生产者消费者问题，信号量内核中多被mutex取代
-互斥体：mutex_init()
-
+互斥体：mutex_init()，mutex_lock()导致睡眠不能打断,mutex_trylock(),mutex_lock_interruptible()，mutex_unlock()
+自旋锁和互斥体运用最广泛
+1互斥体是进程级的，适用于临界区较大的情况，自旋锁适用于临界区小的情况
+2互斥体保护的临界区可以有引起阻塞的代码，但是自旋锁不行，可能导致死锁
+3如果是在中断里，只能使用自旋锁，当然也可用mutex_trylock()
+完成量：一个执行单元等待另一个执行单元完成某事init_completion(),wait_for_completion(),complete(),complete_all();
 
