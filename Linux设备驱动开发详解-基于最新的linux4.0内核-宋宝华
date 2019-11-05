@@ -158,3 +158,7 @@ down_trylock(),up()释放信号量，信号量在获取不到时会睡眠，而�
 3如果是在中断里，只能使用自旋锁，当然也可用mutex_trylock()
 完成量：一个执行单元等待另一个执行单元完成某事init_completion(),wait_for_completion(),complete(),complete_all();
 
+阻塞与非阻塞IO
+使用等待队列实现阻塞IO
+
+
