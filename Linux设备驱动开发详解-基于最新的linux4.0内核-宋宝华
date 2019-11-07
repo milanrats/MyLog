@@ -159,6 +159,15 @@ down_trylock(),up()释放信号量，信号量在获取不到时会睡眠，而�
 完成量：一个执行单元等待另一个执行单元完成某事init_completion(),wait_for_completion(),complete(),complete_all();
 
 阻塞与非阻塞IO
-使用等待队列实现阻塞IO
+open使用O_NONBLOCK参数时为非阻塞，或者使用fcntl设置，否则为阻塞
+使用等待队列实现阻塞IO，init_waitqueue_head(),add_wait_queue(),remove_wait_queue();
+wait_event(),wait_event_interruptible(),wait_event_timeout(),wait_event_interruptible_timeout(),interruptible表示可被信号打断，timeout表示可超时退出
+wake_up(),唤醒处于可打断和不可打断的进程，wake_up_interruptible()打断可被信号打断的进程与wait_函数对应使用
+sleep_on(),interruptible_sleep_on()把进程状态设置为TASK_UNINTERRUPTIBLE和TASK_INTERRUPTIBLE
+
+
+
+
+
 
 
