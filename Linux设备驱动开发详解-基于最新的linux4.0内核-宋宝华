@@ -165,9 +165,22 @@ wait_event(),wait_event_interruptible(),wait_event_timeout(),wait_event_interrup
 wake_up(),唤醒处于可打断和不可打断的进程，wake_up_interruptible()打断可被信号打断的进程与wait_函数对应使用
 sleep_on(),interruptible_sleep_on()把进程状态设置为TASK_UNINTERRUPTIBLE和TASK_INTERRUPTIBLE
 使用schedule切换进程，一般判断是否可读或可写后，判断是否非阻塞读写，然后设置进程状态，然后切换进程
+__set_current_state浅度睡眠标记，并不真正睡眠，schedule后才切换进程，schedule前一定要释放互斥体，否则会死锁。
 
+轮询操作
+select和poll
+应用层select（maxfd+1，*readfds，*writefds，*exceptfds，*timeout）分辨监控读写和异常处理文件描述符的变化
+应用调用select的时候，实际每个驱动的poll函数被调用，进程被挂在每个驱动的等待队列上。
+poll和select原理类似，当文件描述符数量庞大时，poll和select性能会降低，epoll性能会优于他们，底层自建红黑树？
+epoll_create(size);入参监视fd的数量，返回一个epfd
+epoll_ctl(epfd，op，fd，*events);
+event有EPOLLIN,EPOLLOUT,EPOLLPRI,EPOLLERR,EPOLLHUP,EPOLLLET边沿触发，只通知一次，默认水平触发，如果不操作fd，事件一直存在。
+EPOLLONESHOT只监听一次，如果事件触发后还想监听，需重新加到epoll队列
+epoll_wait(epfd,*events,maxevents,timeout);
+驱动中的xxx_poll，poll_wait
+阻塞IO通常使用等待队列实现。至于应用层使用epoll还是select，驱动层的程序时相同的，可能内核中的处理会有差别
 
-
+异步通知与异步IO
 
 
 
