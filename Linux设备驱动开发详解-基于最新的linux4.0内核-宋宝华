@@ -181,6 +181,10 @@ epoll_wait(epfd,*events,maxevents,timeout);
 阻塞IO通常使用等待队列实现。至于应用层使用epoll还是select，驱动层的程序时相同的，可能内核中的处理会有差别
 
 异步通知与异步IO
+异步通知，相当于中断，应用不用轮询或阻塞，驱动准备好后通知应用。
+应用层signal(SIGINT,sig_handler),sigaction()
+使用fcntl设置进程拥有信号，设置异步通知
+驱动层fasync(),kill_fasync()触发信号。
 
 
 
