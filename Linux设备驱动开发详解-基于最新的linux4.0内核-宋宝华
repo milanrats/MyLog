@@ -185,6 +185,13 @@ epoll_wait(epfd,*events,maxevents,timeout);
 应用层signal(SIGINT,sig_handler),sigaction()
 使用fcntl设置进程拥有信号，设置异步通知
 驱动层fasync(),kill_fasync()触发信号。
+异步IO，aio_read()异步读,aio_write()异步写,aio_error()异步操作是否完成,aio_return()异步操作返回值
+aio_suspend()阻塞进程，等待异步操作完成，aio_cancel()取消请求
+lio_listio()等待多个异步操作完成
+内核层，块驱动，应用程序减少同步负载，并发控制，负载均衡，提高socket吞吐性能
+用户空间使用libaio完成异步操作io_setup,io_submit,io_getevents,io_destroy
+驱动层file_ops,aio_read,aio_write,aio_fsync,对于块设备和网络设备，一般linux核心层已经实现了异步操作
+用户空间设置文件拥有者，fasync标志及捕获信号，内核空间相应对文件的拥有者fasync标志的设置，并在资源可获得时释放信号。
 
 
 
