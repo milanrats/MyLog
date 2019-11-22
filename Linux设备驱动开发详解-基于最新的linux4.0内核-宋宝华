@@ -193,6 +193,22 @@ lio_listio()等待多个异步操作完成
 驱动层file_ops,aio_read,aio_write,aio_fsync,对于块设备和网络设备，一般linux核心层已经实现了异步操作
 用户空间设置文件拥有者，fasync标志及捕获信号，内核空间相应对文件的拥有者fasync标志的设置，并在资源可获得时释放信号。
 
+中断
+内部中断，外部中断；屏蔽中断，非屏蔽中断；向量中断，非向量中断
+linux中断的顶半部和底半部：设计思路是紧急且不可打断的短小操作与耗时而不紧急的操作分离开执行。
+顶半部：处理紧急但是不耗时的内容，登记中断，将底半部耗时内容挂载到设备的执行队列
+底半部：处理耗时的操作，几乎中断要处理的所有内容，可以被中断。tasklet，工作队列，软中断，线程化irq
+申请和释放中断，request_irq申请中断指定顶半部回调函数,free_irq
+屏蔽一个中断disable_irq等待已经进入的中断返回，中断里使用会导致死锁，中断里使用disable_irq_nosync()
+宏local_irq_save,local_irq_disable,屏蔽本cpu的所有中断。local_irq_restore,local_irq_enable恢复
+tasklet就是在顶半部末尾调度tasklet，它会在适当的时候执行。
+工作队列执行方式和tasklet相同，但其上下文是内核线程，可以调度和睡眠；工作队列实质上是线程池，和libuv的工作队列是相同的
+软中断一般不使用，tasklet基于软中断，不允许阻塞和睡眠
+中断，软中断和信号
+线程irq，使用request_thread_irq
+中断共享，申请中断时使用IRQF_SHARED，条件是中断未申请，或已申请的中断都使用IRQF_SHARED，中断顶半部判断是否为本设备的中断
+
+
 
 
 
