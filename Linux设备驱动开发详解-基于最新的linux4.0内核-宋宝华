@@ -267,7 +267,13 @@ linux3.x一个镜像适用于多个硬件的目标
 linux总线设备驱动模型：驱动只管驱动，设备只管设备，总线负责匹配设备和驱动，驱动通过标准途径获得板级信息
 分层设计，不变的部分提炼出来，input核心层
 M*N网状耦合，大量重复代码，需要提炼中间层左到M对1，N对1；主机控制器驱动和外设驱动提炼中间层和标准API，使主机控制器驱动和外设驱动可以任意组合而不用修改
-platform总线
+总线负责匹配设备和驱动，如PCI，USB,IIC,SPI等设备可以直接使用总线匹配，对于不依赖这些总线的设备，使用虚拟总线，platform总线
+与platform_driver地位对等的是IIC_driver,usb_driver,spi_driver,pci_driver都包含device_driver结构体成员
+bus_type成员中的match函数用于匹配platform_device和platform_driver
+匹配分为四种：1设备树风格匹配2ACPI风格匹配3匹配ID表4设备名和驱动名匹配；匹配后会在/sys/devices/platform/xxx中找到设备驱动
+linux2.6x中platform_device通常在BSP文件中，linux3.x后倾向于根据设备树自动展开
+resouce结构体也在BSP中定义，指定设备占用内存，中断等资源
+
 
 
 
