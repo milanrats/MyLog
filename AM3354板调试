@@ -1,0 +1,144 @@
+使用的miron的nandflash停产，更换为miron的29F8g08ABACA
+
+uboot修改后，
+原来的rootfs不能使用：validate_sb:LEB size mismatch:516096 in superblock, 253952 real
+需要重做rootfs
+制作后出现failed to recover master node,是由于mkfs.ubifs参数没有计算正确
+
+1.nandflsh参数
+MT29F8G08ABACA(8G×8)：
+1 page = (4K + 224 bytes)
+1 block = (4K + 224) bytes x 64 pages
+= (256K + 14K) bytes
+1 plane = (256K + 14K) bytes x 2048 blocks
+= 4320Mb
+1 LUN = 4320Mb x 2 planes
+= 8640Mb
+AM335X 支持Device ID包括这两个芯片的
+
+2.mkfs.ubifs的用法 
+Examples: 
+Build file system from directory /opt/img, writting the result in the ubifs.img file 
+        mkfs.ubifs -m 512 -e 128KiB -c 100 -r /opt/img ubifs.img 
+The same, but writting directly to an UBI volume 
+        mkfs.ubifs -r /opt/img /dev/ubi0_0 
+Creating an empty UBIFS filesystem on an UBI volume 
+        mkfs.ubifs /dev/ubi0_0 
+Options: 
+-r, -d, --root=DIR               build file system from directory DIR 
+-m, --min-io-size=SIZE       minimum I/O unit size，最小输入输出大小 
+-e, --leb-size=SIZE        logical erase block size逻辑可擦出块大小 
+-c, --max-leb-cnt=COUNT    maximum logical erase block count最大逻辑可擦出块数目 
+-o, --output=FILE        output to FILE输出文件名 
+-j, --jrn-size=SIZE      journal size 
+-R, --reserved=SIZE      how much space should be reserved for the super-user 
+-x, --compr=TYPE        compression type - "lzo", "favor_lzo", "zlib" or 
+                                  "none" (default: "lzo") 
+-X, --favor-percent       may only be used with favor LZO compression and defines 
+                                how many percent better zlib should compress to make 
+                                mkfs.ubifs use zlib instead of LZO (default 20%) 
+-f, --fanout=NUM          fanout NUM (default: 8) 
+-F, --space-fixup         file-system free space has to be fixed up on first moun
+                          (requires kernel version 3.0 or greater) 
+-k, --keyhash=TYPE       key hash type - "r5" or "test" (default: "r5") 
+-p, --orph-lebs=COUNT     count of erase blocks for orphans (default: 1) 
+-D, --devtable=FILE       use device table FILE 
+-U, --squash-uids         squash owners making all files owned by root 
+-l, --log-lebs=COUNT     count of erase blocks for the log (used only for debugging) 
+-v, --verbose             verbose operation 
+-V, --version             display version information 
+-g, --debug=LEVEL         display debug information (0 - none, 1 - statistics, 2 - files, 3 - more details) 
+-h, --help               display this help text 
+例： 
+mkfs.ubifs -x lzo -m 2KiB -e 124KiB -c 720 -o system_ubifs.img -d $path_to_system 
+压缩格式为lzo 
+-m最小输入输出大小为2KiB(2048bytes)，一般为页大小 
+-e逻辑可擦除块大小为124KiB=(每块的页数-2)*页大小=（64-2）*2KiB=124KiB 
+-c最多逻辑可擦除块数目为720(720*128KiB=90MiB),这个可根据ubi volume来设置，实际上是设置此卷的最大容量。 
+
+3.ubinize的用法
+Usage: ubinize [-o filename] [-p ] [-m ] [-s ] [-O ] [-e 
+][-x  ]  [-Q  ]  [-v]  [-h]  [-V]  [--output=] 
+[--peb-size=]  [--min-io-size=]  [--sub-page-size=] 
+[--vid-hdr-offset=]  [--erase-counter=]  [--ubi-ver=] 
+[--image-seq=] [--verbose] [--help] [--version] ini-file 
+Example: ubinize -o ubi.img -p 16KiB -m 512 -s 256 cfg.ini - create UBI image 
+         'ubi.img' as described by configuration file 'cfg.ini' 
+-o, --output=     output file name 
+-p, --peb-size=       size of the physical eraseblock of the flash 
+                             this UBI image is created for in bytes, 
+                              kilobytes (KiB), or megabytes (MiB) 
+                              (mandatory parameter)物理可擦出块大小 
+-m, --min-io-size=    minimum input/output unit size of the flash 
+                             in bytes 
+-s, --sub-page-size=  minimum input/output unit used for UBI 
+                             headers, e.g. sub-page size in case of NAND 
+                             flash (equivalent to the minimum input/output 
+                             unit size by default)子页大小 
+-O, --vid-hdr-offset=   offset if the VID header from start of the 
+                              physical eraseblock (default is the next 
+                             minimum I/O unit or sub-page after the EC 
+                             header)VID头部偏移量,默认是512 
+-e, --erase-counter=    the erase counter value to put to EC headers (default is 0) 
+-x, --ubi-ver=           UBI version number to put to EC headers  (default is 1) 
+-Q, --image-seq=        32-bit UBI image sequence number to use 
+                             (by default a random number is picked) 
+-v, --verbose                 be verbose 
+-h, --help                   print help message 
+-V, --version                 print program version 
+例： 
+ubinize –o ubi.img -m 2KiB -p 128KiB -s 2048 $system_cfg_file –v 
+-m最小输入输出大小为2KiB(2048bytes)，一般为页大小 
+-p物理可擦出块大小为128KiB=每块的页数*页大小=64*2KiB=128KiB 
+-s用于UBI头部信息的最小输入输出单元，一般与最小输入输出单元(-m参数)大小一样。 
+ubinize需要指定一个配置文件$system_cfg_file，内容如下： 
+[rootfs-volume]  
+mode=ubi  
+image=system_ubifs.img  
+vol_id=0  
+vol_size=90MiB  
+vol_type=dynamic 
+vol_name=system 
+======================================================================
+配置文件说明 
+INI-file format. 
+The input configuration ini-file describes all the volumes which have to 
+be included to the output UBI image. Each volume is described in its own 
+section which may be named arbitrarily. The section consists on 
+"key=value" pairs, for example: 
+ 
+[jffs2-volume] 
+mode=ubi 
+image=../jffs2.img         mkfs.ubi生成的源镜像 
+vol_id=1                   卷序号 
+vol_size=30MiB         卷大小 
+vol_type=dynamic           动态卷 
+vol_name=jffs2_volume      卷名 
+vol_flags=autoresize      
+vol_alignment=1 
+
+This example configuration file tells the utility to create an UBI image with one volume with ID 1, volume size 30MiB, the volume is dynamic, has name "jffs2_volume", "autoresize" volume flag, and alignment 1. The "image=../jffs2.img" line tells the utility to take the contents of the volume from the "../jffs2.img" file. The size of the image file has to be less or equivalent to the volume size (30MiB). The "mode=ubi" line is mandatory and just tells that the section describes an UBI volume - other section modes may be added in the future. 
+Notes: 
+  * size in vol_size might be specified kilobytes (KiB), megabytes (MiB),  gigabytes (GiB) or bytes (no modifier); 
+  * if "vol_size" key is absent, the volume size is assumed to be equivalent to the size of the image file (defined by "image" key); 
+  * if the "image" is absent, the volume is assumed to be empty; 
+  * volume alignment must not be greater than the logical eraseblock size; 
+  * one ini file may contain arbitrary number of sections, the utility will put all the volumes which are described by these section to the           output UBI image file. 
+
+
+4.计算方法
+(1)-m 最小 I/O 单元大小，一般是页大小， 4096 byte
+(2)-e 是可擦除逻辑块大小，一般等于 (每块的页数 - 2）* 页大小 = （64byte - 2) * 4096 == 248Kbyte=253952
+(3)-c 是最大可擦除逻辑块总数，这个是从 ubinize.cfg 里面的 vol_size / ubinize 里面的 -p 参数= （960 * 1024） / 256 == 3840
+-o 生成的 ubifs.img
+-F 自动调整大小。
+(4)ubinize -m 和上面一样 ， 一般是 页大小 , 4096 byte
+-p 一般是块大小， 256KiB=262144
+得出的命令
+./mkfs.ubifs -F -r rootfs -m 4096 -e 253952 -c 3840 -o ubifs.img
+./ubinize -o ubi.img -m 4096 -p 262144 -s 4096 -O 4096 ubinize-1G.cfg
+新生成的根文件系统烧写后启动提示
+devtmpfs error mounting -2
+没有正确挂载，没找到原因，重启后没有出现这个问题。
+
+
