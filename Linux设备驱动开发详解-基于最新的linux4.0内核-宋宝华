@@ -272,7 +272,14 @@ M*N网状耦合，大量重复代码，需要提炼中间层左到M对1，N对1�
 bus_type成员中的match函数用于匹配platform_device和platform_driver
 匹配分为四种：1设备树风格匹配2ACPI风格匹配3匹配ID表4设备名和驱动名匹配；匹配后会在/sys/devices/platform/xxx中找到设备驱动
 linux2.6x中platform_device通常在BSP文件中，linux3.x后倾向于根据设备树自动展开
-resouce结构体也在BSP中定义，指定设备占用内存，中断等资源
+resouce结构体也在BSP中定义，指定设备占用内存，中断等资源，platform_get_resources获取资源
+与板子有关的数据使用platform_data从BSP传入驱动
+platform总线驱动好处1总线匹配设备和驱动2隔离驱动和BSP，驱动一致性更好3一份驱动运行多个设备，只需要配置platform信息即可
+linux设备驱动大量使用面向对象设计思想，封装继承多态，核心层重写等，使用分层设计思想，提炼多级核心层
+
+input子系统
+
+
 
 
 
