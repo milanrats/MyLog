@@ -275,12 +275,15 @@ linux2.6x中platform_device通常在BSP文件中，linux3.x后倾向于根据设
 resouce结构体也在BSP中定义，指定设备占用内存，中断等资源，platform_get_resources获取资源
 与板子有关的数据使用platform_data从BSP传入驱动
 platform总线驱动好处1总线匹配设备和驱动2隔离驱动和BSP，驱动一致性更好3一份驱动运行多个设备，只需要配置platform信息即可
+
 linux设备驱动大量使用面向对象设计思想，封装继承多态，核心层重写等，使用分层设计思想，提炼多级核心层
+驱动核心层：1对上提供接口file_operation 2对下定义框架xxx_ops 3中间层实现通用代码layer_ops
+主机驱动和外设驱动分离 四个模块1主机驱动，2外设驱动 3主机外设接口 4板级信息
 
-input子系统
-
-
-
+input子系统，RTC驱动，framebuffer驱动，tty设备驱动，misc设备驱动，
+spi设备驱动：主机端spi_master,外设端spi_driver,主机外设接口spi_transfer，spi_message；spi_message_add_tail,spi_sync,spi_async
+spi_driver负责把外设挂接在spi总线上，spi_device信息在BSP中定义spi_board_info，或者dts中
+linux中百多个驱动子系统。。。重要的是搞清楚分层，分离的设计原理，以不变应万变
 
 
 
