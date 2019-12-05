@@ -285,6 +285,27 @@ spi设备驱动：主机端spi_master,外设端spi_driver,主机外设接口spi_
 spi_driver负责把外设挂接在spi总线上，spi_device信息在BSP中定义spi_board_info，或者dts中
 linux中百多个驱动子系统。。。重要的是搞清楚分层，分离的设计原理，以不变应万变
 
+块设备驱动
+块设备1以块为单位输入输出2有缓冲区3支持随机访问
+与字符设备file_operations类似的block_device_operations
+ioctl和compat_ioctl(64位系统的32位进程调用ioctl时使用)通用层实现了大量标准ioctl操作
+check_event老的内核在用户空间检查可移动设备，新的内核在内核空间检查。如何实现异步通知，设备插入和移除？
+gendisk结构体bio结构体，一个bio对应上层传递给块的io请求，由于其内存页不是连续的，bio可以对应多个内存页，而一个io请求可以包含多个bio，request_queue是请求队列
+IO调度器 Noop IO调度器 适合flash  Deadline IO调度器，适合读取较多（数据库） CFQ IO调度器，提供均衡性能，默认调度器
+可以通过内核启动参数或者修改sys下文件改变调度器
+块设备驱动：制造请求和请求队列以及bio，不像字符设备一样直接处理IO，而是通过制造请求和处理请求及IO调度对IO整合和排队
+MMC子系统 大多数SOC继承MMC/SD/SDIO控制器SDHCI
+
+网络设备驱动
+分层：1网络协议接口层dev_queue_xmit,netif_rx2网络设备接口层3设备驱动功能层4网络设备媒介层
+主要是实现网络设备接口层net_device数据结构的内容，并注册进内核
+套接字缓冲区sk_buff结构体
+发送：使用netif_wake_queue,netif_stop_queue完成超时重发和发满暂停
+接收：中断接收
+
+IIC总线驱动
+组成部分：IIC核心，IIC总线驱动，IIC设备驱动
+数据结构：i2c_adapter,i2c_algorithm,i2c_driver,i2c_client,i2c_msg
 
 
 
