@@ -304,8 +304,23 @@ MMC子系统 大多数SOC继承MMC/SD/SDIO控制器SDHCI
 接收：中断接收
 
 IIC总线驱动
-组成部分：IIC核心，IIC总线驱动，IIC设备驱动
+组成部分：IIC核心是通用平台无关代码，联系总线驱动和设备驱动；IIC总线驱动，实现i2c_adapter,i2c_algorithm平台i2c功能；
+IIC设备驱动定义并实现i2c_driver，实现具体设备的驱动，平台无关
 数据结构：i2c_adapter,i2c_algorithm,i2c_driver,i2c_client,i2c_msg
+i2c-dev.c为应用提供了主设备号为89的通用操作i2c的方法
+应用层读写i2c可以使用read write，也可使用ioctl的I2C_RDWR,驱动需要实现，也可使用ioctl设置从机地址，超时，重发次数等
+
+USB主机设备和Gadget驱动
+USB总线：树型拓扑，主从式
+usb主机控制器驱动，usb核心，usb设备驱动
+UDC驱动程序，Gadget Function API，Gadget Function驱动程序
+设备，配置，接口，端点 四个层次使用设备描述符usb_device_descriptor,配置描述符usb_config_descriptor,接口描述符usb_interface_descriptor,
+端点描述符usb_endpoint_descriptor描述，使用lsusb命令查看设备的描述符
+usb_driver结构体是总线结构体，负责匹配设备驱动，调用probe和disconnect插入移除设备
+usb请求块URB是描述与usb设备通信的基本载体，类似于网络设备中的sk_buff
+
+
+
 
 
 
