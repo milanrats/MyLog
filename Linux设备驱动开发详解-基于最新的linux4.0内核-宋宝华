@@ -325,6 +325,14 @@ linux驱动套路
 linux设备树
 节点--子节点--属性（键值对）
 bootloader将dts传递给内核，公用的部分放在dtsi，dts包含dtsi即可
+dtc，dts的编译器，可以把dts编译位内核和bootloader识别的dtb，dtb可以单独存储也可以绑定在内核上；反编译dtb
+uboot   CONFIG_OF_LIBFDT
+兼容性compatible：包括板子信息和处理器信息
+修改dts后需要在documentation/devicetree/bingdings中添加对应的注释
+设备节点兼容性
+根节点兼容性
+从具体到抽象
+OF api获取dts信息
 
 
 
