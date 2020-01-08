@@ -177,3 +177,10 @@ int set_serial_parity(int fd, char *mode)
     //WriteLog(0, "serial port options - others set ok ... ");
     return 0;
 }
+
+
+调用
+			set_serial_parity(fd, "8m1");
+			write(fd, buf, rdnum);
+			set_serial_parity(fd, "8S1");
+			write(fd, buf, rdnum);
