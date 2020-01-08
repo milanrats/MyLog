@@ -1,0 +1,179 @@
+linux串口
+ODD奇校验，奇数个1；EVEN偶校验，偶数个1；mark校验，校验位永远1；空格校验，校验位永远0
+遇到使用9位数据位的设备，第九位数据用于区分是发送数据还是发送地址（帧头）。linux串口无法设置9位数据
+网上资料很少，有的说使用单片机转，有的说改驱动实现
+还有一种方案是间接实现space和mark校验，使用mark校验时，使用8个数据位，两个停止位，第一个停止位高电平当作校验位
+使用space校验时，使用8个数据位，一个停止位，但是前七个数据位可用，最后一个数据位永远是0（串口发送时字节低位在前，高位在后）
+
+从APUE串口配置说明中找到了c_cflag的一个设置PAREXT,可以设置校验位永远是1或者永远是0，但其是solaris实现的，非posix
+CMSPAR设置时，如果设置PARODD则位mark校验，否则space校验
+c_iflag 的INPCK表示是否检测校验位，当IGNPAR设置时，忽略校验错误的字节（测试不起作用，发送的校验位使对的，但是接收不检查）
+发送数据后，如果不延时就使用tcsetattr设置串口后，由于数据还没发送出去，发送时会按照新的设置发送。tcflush清收发缓存不管用，设置前大概需要延时500us
+
+程序
+//串口设置
+/*
+1. even 每个字节传送整个过程中bit为1的个数是偶数个（校验位调整个数）
+2. odd 每个字节穿送整个过程中bit为1的个数是奇数个（校验位调整个数）
+3. noparity没有校验位
+4. space 校验位总为0
+5. mark 校验位总为1
+*/
+
+int set_serial_parity(int fd, char *mode)
+{
+    struct termios options;
+    //usleep(2000);
+    WriteLog(0, "setting serial port options - others ... ");
+
+    if (0 != tcgetattr(fd, &options))
+    {
+        WriteLog(1, "get serailport options error : tcgetattr failed");
+        return -1;
+    }
+
+    if(mode == NULL)
+    {
+    	WriteLog(1, "user mode set error : NULL failed");
+    	return -1;
+    }
+
+    options.c_cflag &= ~CSIZE;
+
+    switch(mode[0])/*设置数据位数*/
+    {
+    case '8':
+        options.c_cflag |= CS8;
+    	break;
+    case '7':
+        options.c_cflag |= CS7;
+    	break;
+    case '6':
+    	options.c_cflag |= CS6;
+    	break;
+    case '5':
+    	options.c_cflag |= CS5;
+    	break;
+    default:
+        options.c_cflag |= CS8;
+        fprintf(stderr,"Unsupported databits\n");
+		break;
+    }
+
+    switch (mode[1])
+    {
+	case 'n':
+	case 'N':
+		options.c_cflag &= ~PARENB;   /* Clear parity enable */
+		options.c_iflag &= ~INPCK;     /* Disnable parity checking */
+		break;
+	case 'o':
+	case 'O':
+		options.c_cflag |= (PARODD | PARENB); /* 设置为奇效验*/
+		//options.c_iflag |= INPCK;
+		//options.c_iflag |= IGNPAR;
+		options.c_iflag &= ~INPCK;/* Disnable parity checking */
+		break;
+	case 'e':
+	case 'E':
+		options.c_cflag |= PARENB;     /* Enable parity */
+		options.c_cflag &= ~PARODD;   /* 转换为偶效验*/
+		//options.c_iflag |= INPCK;
+		//options.c_iflag |= IGNPAR;
+		options.c_iflag &= ~INPCK;/* Disnable parity checking */
+		break;
+	case 's'://校验位总是1
+	case 'S':  /*as no parity*/
+		options.c_cflag |= CMSPAR;
+		options.c_cflag |= PARENB;
+		options.c_cflag &= ~PARODD;   /* 转换为偶效验*/
+		options.c_iflag &= ~INPCK;
+		break;
+	case 'm'://校验位总是0
+	case 'M':  /*as no parity*/
+		options.c_cflag |= CMSPAR;
+		options.c_cflag |= PARENB;
+		options.c_cflag |= PARODD;
+		options.c_iflag &= ~INPCK;
+		break;
+	default:
+		options.c_cflag &= ~PARENB;   /* Clear parity enable */
+		options.c_iflag &= ~INPCK;     /* Disnable parity checking */
+		fprintf(stderr,"Unsupported parity\n");
+		break;
+    }
+	/* 设置停止位*/
+	switch (mode[2])
+	{
+	case '1':
+		options.c_cflag &= ~CSTOPB;
+		break;
+	case '2':
+		options.c_cflag |= CSTOPB;
+		break;
+	default:
+		options.c_cflag &= ~CSTOPB;
+		fprintf(stderr,"Unsupported stop bits\n");
+		break;
+	}
+
+    // databits
+    //options.c_iflag &= ~(INPCK | ISTRIP);   // Disable parity checking
+    //options.c_iflag |= IGNPAR;              // Ignore parity error
+
+    // flow control
+    options.c_cflag |= CLOCAL;                  // Don't use flow control
+    options.c_cflag &= ~CRTSCTS;                // Disable hard
+    options.c_iflag &= ~(IXON | IXOFF | IXANY); // Disable soft
+
+    // Timeout
+    //options.c_cc[VTIME] = 200;                          // 20 seconds
+    //options.c_cc[VMIN] = 0;
+
+    // Block
+    //options.c_cc[VMIN]  = 1;
+    //options.c_cc[VTIME] = 0;
+
+    options.c_cc[VINTR] = 0; /* Ctrl-c */
+    options.c_cc[VQUIT] = 0; /* Ctrl-\ */
+    options.c_cc[VERASE] = 0; /* del */
+    options.c_cc[VKILL] = 0; /* @ */
+    options.c_cc[VEOF] = 4; /* Ctrl-d */
+    options.c_cc[VTIME] = 0; /* inter-character timer unused */
+
+    options.c_cc[VMIN] = 1; /* blocking read until 1 character arrives */
+
+    options.c_cc[VSWTC] = 0; /* '\0' */
+    options.c_cc[VSTART] = 0; /* Ctrl-q */
+    options.c_cc[VSTOP] = 0; /* Ctrl-s */
+    options.c_cc[VSUSP] = 0; /* Ctrl-z */
+    options.c_cc[VEOL] = 0; /* '\0' */
+    options.c_cc[VREPRINT] = 0; /* Ctrl-r */
+    options.c_cc[VDISCARD] = 0; /* Ctrl-u */
+    options.c_cc[VWERASE] = 0; /* Ctrl-w */
+    options.c_cc[VLNEXT] = 0; /* Ctrl-v */
+    options.c_cc[VEOL2] = 0; /* '\0' */
+
+    // Raw Mode
+    options.c_cflag |= CREAD;
+    options.c_iflag &=~ BRKINT;
+    options.c_cflag |= HUPCL;
+    options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); // Input
+    options.c_oflag &= ~OPOST;                          // Output
+
+    options.c_iflag &= ~(INLCR | IGNCR | ICRNL);        // Disable Input CR/NL
+    options.c_oflag &= ~(ONLCR | OCRNL);                // Disable Output CR/NL
+    //options.c_oflag |= (ONLCR);                // Disable Output CR/NL
+
+
+    tcflush(fd, TCOFLUSH);
+    tcflush(fd, TCIFLUSH);
+
+    if (0 != tcsetattr(fd, TCSANOW, &options))
+    {
+        WriteLog(1, "get serail port options error : tcsetattr failed");
+        return -1;
+    }
+    //WriteLog(0, "serial port options - others set ok ... ");
+    return 0;
+}
